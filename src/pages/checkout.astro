@@ -1,0 +1,42 @@
+---
+export const prerender = false;
+
+import { Stripe } from "stripe";
+const stripeKey = import.meta.env.PUBLIC_STRIPE_API_KEY!;
+const stripe = new Stripe(import.meta.env.STRIPE_SECRET_KEY!);
+const { origin } = Astro.url;
+
+const session = await stripe.checkout.sessions.create({
+	ui_mode: "embedded",
+	mode: "payment",
+	line_items: [{ price: "price_1PZdXyG8BMKPym7qsSt6Ur3h", quantity: 1 }],
+	return_url: `${origin}/status?session_id={CHECKOUT_SESSION_ID}`,
+});
+---
+
+<div
+	id="checkout"
+	data-stripe-key={stripeKey}
+	data-client-secret={session.client_secret}
+>
+</div>
+
+<!-- checkout.astro -->
+<script>
+	import { loadStripe } from "@stripe/stripe-js";
+	const checkoutDiv: HTMLElement = document.querySelector("#checkout")!;
+	const { clientSecret, stripeKey }: DOMStringMap = checkoutDiv?.dataset!;
+	try {
+		const stripe = await loadStripe(stripeKey!);
+
+		const checkout = await stripe.initEmbeddedCheckout({
+			async fetchClientSecret() {
+				return clientSecret!;
+			},
+		})!;
+
+		checkout.mount("#checkout");
+	} catch (e) {
+		console.error(e);
+	}
+</script>

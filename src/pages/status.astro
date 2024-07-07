@@ -1,0 +1,21 @@
+---
+import { Stripe } from "stripe";
+export const prerender = false;
+const sessionID = Astro.url.searchParams.get("session_id");
+const stripe = new Stripe(import.meta.env.STRIPE_SECRET_KEY!);
+
+let session;
+try {
+	session = await stripe.checkout.sessions.retrieve(sessionID);
+} catch (e) {
+	console.error(e);
+	// Redirect users back to checkout page if session is invalid
+	return Astro.redirect("/checkout");
+}
+const { name, email } = session.customer_details!;
+---
+
+<div>
+	<h1>Thank you for your purchase, {name}!</h1>
+	<p>We've sent a receipt to {email}.</p>
+</div>
