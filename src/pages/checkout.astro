@@ -7,10 +7,15 @@ const stripe = new Stripe(import.meta.env.STRIPE_SECRET_KEY!);
 const { origin } = Astro.url;
 let session;
 try {
-	const session = await stripe.checkout.sessions.create({
+	session = await stripe.checkout.sessions.create({
 		ui_mode: "embedded",
 		mode: "payment",
-		line_items: [{ price: "price_id", quantity: 1 }],
+		line_items: [
+			{
+				price: "price_id",
+				quantity: 1,
+			},
+		],
 		return_url: `${origin}/status?session_id={CHECKOUT_SESSION_ID}`,
 	});
 } catch {
